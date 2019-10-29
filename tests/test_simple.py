@@ -26,6 +26,14 @@ async def test_simple(setup_logger, loop):
         "stack_info": None}
 
 
+async def test_simple_using_config(setup_logger_using_config, loop):
+    logger, server = await setup_logger_using_config()
+    logger.info('hello')
+    await server.wait()
+    # js = server.jsons
+    assert True
+
+
 async def test_cannot_connect(unused_tcp_port, loop):
     with pytest.raises(OSError):
         await create_tcp_handler('127.0.0.1', unused_tcp_port, loop=loop)

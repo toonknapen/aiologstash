@@ -138,3 +138,37 @@ def setup_logger(make_tcp_handler):
         logger.addHandler(handler)
         return logger, handler, server
     yield go
+
+
+@pytest.fixture
+def setup_logger_using_config(make_tcp_server):
+    import logging.config
+
+    async def go(*args, **kwargs):
+        server = await make_tcp_server(*args, **kwargs)
+
+        logger_config = {
+            'version': 1,
+            'handlers': {
+                'myhandler': {
+                    '()': 'aiologstash.my_handler.MyHandler',
+                    'host': '127.0.0.1',
+                    'port': server.port,
+                    'level': logging.NOTSET,
+                    'close_timeout': 5,
+                    'qsize': 10000,
+                    'loop': asyncio.get_event_loop(),
+                    'reconnect_delay': 1,
+                    'reconnect_jitter': 0.3,
+                    'extra': {}
+                }
+            },
+            'root': {
+                'level': 'INFO',
+                'handlers': ['myhandler']
+            }
+        }
+        logging.config.dictConfig(logger_config)
+        logger = logging.getLogger('aiologstash_test')
+        return logger, server
+    yield go
